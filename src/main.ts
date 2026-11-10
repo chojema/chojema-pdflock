@@ -10,17 +10,17 @@ const input = (id: string) => $<HTMLInputElement>(id);
 document.documentElement.lang = isKo ? "ko" : "en";
 document.querySelectorAll<HTMLElement>("[data-i18n]").forEach((el) => (el.textContent = t[el.dataset.i18n as Key]));
 document.querySelectorAll<HTMLInputElement>("[data-i18n-ph]").forEach((el) => (el.placeholder = t[el.dataset.i18nPh as Key]));
+document.querySelectorAll<HTMLElement>("[data-i18n-label]").forEach((el) => el.setAttribute("aria-label", t[el.dataset.i18nLabel as Key]));
 getVersion().then((v) => ($("version").textContent = `Chojema PDFLock v${v}`));
 
-type Item = { path: string; state: "" | "working" | "done" | "error"; note: string; open: boolean; name: string };
-let items: Item[] = [];
+let file: string | null = null;
 let busy = false;
 
 // --- paths -------------------------------------------------------------------
-const sepOf = (p: string) => (p.includes("\\") ? "\\" : "/");
-const baseName = (p: string) => p.slice(Math.max(p.lastIndexOf("\\"), p.lastIndexOf("/")) + 1);
-const dirOf = (p: string) => p.slice(0, Math.max(p.lastIndexOf("\\"), p.lastIndexOf("/")));
-const join = (dir: string, name: string) => dir + sepOf(dir) + name;
+const sepIndex = (p: string) => Math.max(p.lastIndexOf("\\"), p.lastIndexOf("/"));
+const baseName = (p: string) => p.slice(sepIndex(p) + 1);
+const dirOf = (p: string) => p.slice(0, sepIndex(p));
+const join = (dir: string, name: string) => dir + (dir.includes("\\") ? "\\" : "/") + name;
 const lockName = (p: string) => baseName(p).replace(/\.pdf$/i, "") + "_lock.pdf";
 const withPdf = (n: string) => (/\.pdf$/i.test(n) ? n : n + ".pdf");
 const samePath = (a: string, b: string) => a.toLowerCase() === b.toLowerCase(); // shortcut: case-insensitive, fine for Windows/macOS defaults
@@ -50,92 +50,49 @@ function confirmBox(message: string, okLabel: string): Promise<boolean> {
 }
 
 // --- rendering -----------------------------------------------------------------
-function button(label: string, cls: string, onclick: () => void, disabled = busy) {
-  const b = document.createElement("button");
-  b.type = "button";
-  b.className = cls;
-  b.textContent = label;
-  b.disabled = disabled;
-  b.onclick = onclick;
-  return b;
-}
+const showError = (msg: string) => ($("error").textContent = msg);
+const showStatus = (msg: string, cls = "") => {
+  $("status").textContent = msg;
+  $("status").className = "status " + cls;
+};
 
 function render() {
-  $("list").replaceChildren(...items.map(row));
-  $("count").textContent = items.length ? t.files(items.length) : "";
-  $("clear").hidden = items.length === 0;
-  $("drop").classList.toggle("compact", items.length > 0);
-  $<HTMLButtonElement>("saveAll").disabled = busy;
+  $("empty").hidden = file !== null;
+  $("card").hidden = file === null;
+  $("drop").classList.toggle("has-file", file !== null);
+  $("pick").textContent = file ? t.pickOther : t.pickFile;
+  $("cardName").textContent = file ? baseName(file) : "";
+  $("cardDir").textContent = file ? dirOf(file) : "";
+  $("fileName").textContent = file ? baseName(file) : t.noFile;
+  $("fileName").classList.toggle("muted", !file);
+  $("fileName").title = file ?? "";
+  for (const id of ["save", "saveAs", "saveNamed", "browse", "pick"]) $<HTMLButtonElement>(id).disabled = busy || (!file && id !== "pick");
+  input("newName").disabled = busy || !file;
 }
 
-function row(it: Item, i: number) {
-  const li = document.createElement("li");
-  li.className = it.state;
-
-  const head = document.createElement("div");
-  head.className = "row-head";
-  const label = document.createElement("span");
-  label.className = "name";
-  label.textContent = baseName(it.path);
-  label.title = it.path;
-  const rm = button("×", "link remove", () => {
-    items.splice(i, 1);
-    render();
-  });
-  rm.title = t.remove;
-  rm.setAttribute("aria-label", t.remove);
-  head.append(label, rm);
-
-  const actions = document.createElement("div");
-  actions.className = "row-actions";
-  const status = document.createElement("span");
-  status.className = "status";
-  status.textContent = { "": "", working: t.working, done: `${t.done}: ${baseName(it.note)}`, error: it.note }[it.state];
-  status.title = it.note;
-  actions.append(status);
-  if (it.state !== "done") {
-    const saveAs = button(t.saveAs, "secondary small" + (it.open ? " active" : ""), () => {
-      it.open = !it.open;
-      render();
-      if (it.open) document.querySelector<HTMLInputElement>(`#name-${i}`)?.select();
-    });
-    saveAs.setAttribute("aria-expanded", String(it.open));
-    actions.append(button(t.save, "secondary small", () => saveOriginal(it)), saveAs);
-  }
-  li.append(head, actions);
-
-  if (it.open && it.state !== "done") {
-    const line = document.createElement("div");
-    line.className = "row-saveas";
-    const field = document.createElement("input");
-    field.type = "text";
-    field.id = `name-${i}`;
-    field.value = it.name;
-    field.disabled = busy;
-    field.setAttribute("aria-label", t.saveAs);
-    field.oninput = () => (it.name = field.value);
-    field.onkeydown = (e) => e.key === "Enter" && saveWithName(it);
-    line.append(field, button(t.save, "primary small", () => saveWithName(it)), button(t.browse, "link", () => saveWithDialog(it)));
-    li.append(line);
-  }
-  return li;
-}
-
-// --- actions -------------------------------------------------------------------
-const showError = (msg: string) => ($("error").textContent = msg);
-
-function add(paths: string[]) {
+function setFile(paths: string[]) {
   const pdfs = paths.filter((p) => p.toLowerCase().endsWith(".pdf"));
-  showError(pdfs.length < paths.length ? t.errNotPdf : "");
-  for (const p of pdfs)
-    if (!items.some((it) => it.path === p)) items.push({ path: p, state: "", note: "", open: false, name: lockName(p) });
+  if (!pdfs.length) return showError(t.errNotPdf);
+  showError(pdfs.length < paths.length ? t.errNotPdf : pdfs.length > 1 ? t.oneFile : "");
+  file = pdfs[0];
+  input("newName").value = lockName(file);
+  showStatus("");
   render();
 }
 
+function toggleSaveAs(open = $("saveAsRow").hidden === true) {
+  $("saveAsRow").hidden = !open;
+  $("saveAs").classList.toggle("active", open);
+  $("saveAs").setAttribute("aria-expanded", String(open));
+  if (open) input("newName").select();
+}
+
+// --- saving --------------------------------------------------------------------
 /** Reads and validates password settings; shows an error and returns null if invalid. */
 function readOptions() {
   const openPassword = input("openPw").value;
   const permissionPassword = input("permPw").value;
+  if (!file) return showError(t.errNoFile), null;
   if (!openPassword && !permissionPassword) return showError(t.errNoPw), null;
   if (openPassword && openPassword === permissionPassword) return showError(t.errSamePw), null;
   showError("");
@@ -151,68 +108,45 @@ function readOptions() {
     assemble: input("assemble").checked,
   };
 }
-type Options = NonNullable<ReturnType<typeof readOptions>>;
 
-async function run(jobs: { it: Item; output: string }[], options: Options) {
+async function saveTo(output: string, askIfExists: boolean) {
+  const options = readOptions();
+  if (!options || !file) return;
+  if (samePath(output, file)) {
+    if (!(await confirmBox(t.confirmOriginal(baseName(file)), t.overwrite))) return;
+  } else if (askIfExists && (await invoke<boolean>("path_exists", { path: output }))) {
+    if (!(await confirmBox(t.confirmExists(baseName(output)), t.overwrite))) return;
+  }
   busy = true;
-  for (const { it, output } of jobs) {
-    it.state = "working";
-    render();
-    try {
-      it.note = await invoke<string>("lock_pdf", { input: it.path, output, options });
-      it.state = "done";
-      it.open = false;
-    } catch (err) {
-      it.state = "error";
-      it.note = String(err);
-    }
+  showStatus(t.working);
+  render();
+  try {
+    const saved = await invoke<string>("lock_pdf", { input: file, output, options });
+    showStatus(`${t.done}: ${saved}`, "done");
+    toggleSaveAs(false);
+  } catch (err) {
+    showStatus(String(err), "failed");
   }
   busy = false;
   render();
 }
 
-async function saveTo(it: Item, output: string, askIfExists: boolean) {
-  const options = readOptions();
-  if (!options) return;
-  if (samePath(output, it.path)) {
-    if (!(await confirmBox(t.confirmOriginal(baseName(it.path)), t.overwrite))) return;
-  } else if (askIfExists && (await invoke<boolean>("path_exists", { path: output }))) {
-    if (!(await confirmBox(t.confirmExists(baseName(output)), t.overwrite))) return;
-  }
-  await run([{ it, output }], options);
-}
-
-const saveOriginal = (it: Item) => saveTo(it, it.path, false);
-
-function saveWithName(it: Item) {
-  const name = cleanName(it.name);
+$("save").onclick = () => file && saveTo(file, false);
+$("saveAs").onclick = () => toggleSaveAs();
+$("saveNamed").onclick = () => {
+  const name = cleanName(input("newName").value);
   if (!name) return showError(t.errName);
-  saveTo(it, join(dirOf(it.path), name), true);
-}
-
-async function saveWithDialog(it: Item) {
-  if (!readOptions()) return;
+  if (file) saveTo(join(dirOf(file), name), true);
+};
+input("newName").onkeydown = (e) => e.key === "Enter" && $("saveNamed").click();
+$("browse").onclick = async () => {
+  if (!file || !readOptions()) return;
   const picked = await save({
-    defaultPath: join(dirOf(it.path), cleanName(it.name) ?? lockName(it.path)),
+    defaultPath: join(dirOf(file), cleanName(input("newName").value) ?? lockName(file)),
     filters: [{ name: "PDF", extensions: ["pdf"] }],
   });
   // The system dialog already asked about overwriting an existing file.
-  if (picked) saveTo(it, withPdf(picked), false);
-}
-
-$("saveAll").onclick = async () => {
-  const pending = items.filter((it) => it.state !== "done");
-  if (!pending.length) return showError(t.errNoFiles);
-  const options = readOptions();
-  if (!options) return;
-  const jobs = pending.map((it) => ({ it, output: join(dirOf(it.path), lockName(it.path)) }));
-  const existing = [];
-  for (const j of jobs) if (await invoke<boolean>("path_exists", { path: j.output })) existing.push(j);
-  if (existing.length) {
-    const msg = existing.length === 1 ? t.confirmExists(baseName(existing[0].output)) : t.confirmExistsMany(existing.length);
-    if (!(await confirmBox(msg, t.overwrite))) return;
-  }
-  await run(jobs, options);
+  if (picked) saveTo(withPdf(picked), false);
 };
 
 // --- wiring --------------------------------------------------------------------
@@ -224,13 +158,8 @@ function syncPerms() {
 }
 
 $("pick").onclick = async () => {
-  const picked = await open({ multiple: true, filters: [{ name: "PDF", extensions: ["pdf"] }] });
-  if (picked) add(picked);
-};
-$("clear").onclick = () => {
-  if (busy) return;
-  items = [];
-  render();
+  const picked = await open({ multiple: false, filters: [{ name: "PDF", extensions: ["pdf"] }] });
+  if (typeof picked === "string") setFile([picked]);
 };
 input("permPw").oninput = syncPerms;
 input("show").onchange = () => {
@@ -242,7 +171,7 @@ input("show").onchange = () => {
 getCurrentWebview().onDragDropEvent((e) => {
   const type = e.payload.type;
   $("drop").classList.toggle("over", type === "enter" || type === "over");
-  if (e.payload.type === "drop" && !busy) add(e.payload.paths);
+  if (e.payload.type === "drop" && !busy) setFile(e.payload.paths);
 });
 
 syncPerms();

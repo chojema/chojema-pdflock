@@ -12,9 +12,8 @@
 - **Permissions password**: restricts printing, editing, copying and more. Only this password lifts the restrictions.
 - Set either password on its own, or both together.
 - **AES-256** encryption (PDF 1.7 extension level 8 / PDF 2.0 standard).
-- Drag and drop many files and protect them in one go.
-- For each file, choose **Save** (replace the original with the protected file) or **Save as** (default name `name_lock.pdf`, editable).
-- **Save all** saves every file as `name_lock.pdf` next to its original in one go.
+- Drop or choose a single PDF file to protect.
+- Choose **Save** (replace the original with the protected file) or **Save as** (default name `name_lock.pdf`, editable).
 - You are always asked before an original or an existing file is overwritten.
 - Everything happens on your computer. No file ever leaves it.
 - Korean and English UI, chosen automatically from your system language.
@@ -47,11 +46,11 @@ The app is not code-signed, so you may see a warning the first time you run it.
 
 ## How to use
 
-1. Drop PDF files onto the window, or click **Add files**.
+1. Drop a PDF file onto the window, or click **Choose file**.
 2. Enter an open password, a permissions password, or both.
 3. If you set a permissions password, choose which actions to allow.
-4. Click **Save** or **Save as** on a file, or click **Save all**.
-   - **Save as** opens a name field below the file. Edit the name and click **Save**, or use **Choose folder…** to save elsewhere.
+4. In the **Save** section, click **Save** or **Save as**.
+   - **Save as** opens a name field on the next line. Edit the name and click **Save**, or use **Choose folder…** to save elsewhere.
 
 ## Good to know
 

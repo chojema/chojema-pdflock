@@ -2,6 +2,12 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/).
 
+## [Unreleased]
+
+### Changed
+- Simplified to process a single PDF file at a time. Batch processing and **Save all** were removed.
+- The Save section shows the file name with **Save** / **Save as**; a different name is edited in a field on the next line.
+
 ## [0.2.0] - 2026-11-10
 
 ### Security

@@ -11,14 +11,17 @@
     <main class="app">
       <section class="files">
         <div class="drop" id="drop">
-          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 19h14" /></svg>
-          <p data-i18n="dropHint"></p>
-          <button type="button" id="pick" class="secondary" data-i18n="addFiles"></button>
-        </div>
-        <ul id="list" class="list" aria-live="polite"></ul>
-        <div class="list-actions">
-          <span id="count" class="muted"></span>
-          <button type="button" id="clear" class="link" data-i18n="clear"></button>
+          <div id="empty" class="empty">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 19h14" /></svg>
+            <p data-i18n="dropHint"></p>
+          </div>
+          <div id="card" class="card" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6zM14 3v4h4" /></svg>
+            <p id="cardName" class="card-name"></p>
+            <p id="cardDir" class="muted card-dir"></p>
+            <p class="hint" data-i18n="dropReplace"></p>
+          </div>
+          <button type="button" id="pick" class="secondary"></button>
         </div>
       </section>
 
@@ -52,11 +55,21 @@
 
         <label class="check"><input type="checkbox" id="show" /> <span data-i18n="showPw"></span></label>
 
-        <p id="error" class="error" role="alert"></p>
-        <div class="save-all">
-          <button type="button" id="saveAll" class="primary" data-i18n="saveAll"></button>
-          <p class="hint" data-i18n="saveAllHint"></p>
-        </div>
+        <fieldset class="save-box">
+          <legend data-i18n="saveTitle"></legend>
+          <div class="save-row">
+            <span id="fileName" class="name"></span>
+            <button type="button" id="save" class="secondary small" data-i18n="save"></button>
+            <button type="button" id="saveAs" class="secondary small" data-i18n="saveAs" aria-expanded="false" aria-controls="saveAsRow"></button>
+          </div>
+          <div id="saveAsRow" class="save-row" hidden>
+            <input id="newName" type="text" data-i18n-label="saveAs" />
+            <button type="button" id="saveNamed" class="primary small" data-i18n="save"></button>
+            <button type="button" id="browse" class="link" data-i18n="browse"></button>
+          </div>
+          <p id="status" class="status" aria-live="polite"></p>
+          <p id="error" class="error" role="alert"></p>
+        </fieldset>
         <footer class="muted"><span id="version"></span> · AES-256</footer>
       </section>
     </main>
