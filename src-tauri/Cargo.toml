@@ -1,6 +1,6 @@
 [package]
 name = "chojema-pdflock"
-version = "0.2.0"
+version = "0.3.0"
 description = "Protect PDF files with open and permissions passwords"
 authors = ["Chulwoo Park"]
 license = "MIT"
