@@ -12,7 +12,7 @@
 - **Permissions password**: restricts printing, editing, copying and more. Only this password lifts the restrictions.
 - Set either password on its own, or both together.
 - **AES-256** encryption (PDF 1.7 extension level 8 / PDF 2.0 standard).
-- Drop or choose a single PDF file to protect.
+- Drop or choose a single PDF file; its whole first page is shown as a preview.
 - Choose **Save** (replace the original with the protected file) or **Save as** (default name `name_lock.pdf`, editable).
 - You are always asked before an original or an existing file is overwritten.
 - Everything happens on your computer. No file ever leaves it.
@@ -63,4 +63,4 @@ The app is not code-signed, so you may see a warning the first time you run it.
 
 [MIT](LICENSE) © 2026 Chulwoo Park
 
-Uses [qpdf](https://github.com/qpdf/qpdf) (Apache-2.0) as the encryption engine.
+Uses [qpdf](https://github.com/qpdf/qpdf) (Apache-2.0) for encryption and [PDF.js](https://github.com/mozilla/pdf.js) (Apache-2.0) for the preview.

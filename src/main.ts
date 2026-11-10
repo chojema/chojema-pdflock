@@ -14,6 +14,7 @@ document.querySelectorAll<HTMLElement>("[data-i18n-label]").forEach((el) => el.s
 getVersion().then((v) => ($("version").textContent = `Chojema PDFLock v${v}`));
 
 let file: string | null = null;
+let pageCount = 0; // from the preview; 0 until known
 let busy = false;
 
 // --- paths -------------------------------------------------------------------
@@ -62,7 +63,7 @@ function render() {
   $("drop").classList.toggle("has-file", file !== null);
   $("pick").textContent = file ? t.pickOther : t.pickFile;
   $("cardName").textContent = file ? baseName(file) : "";
-  $("cardDir").textContent = file ? dirOf(file) : "";
+  $("cardDir").textContent = file ? (pageCount ? `${t.pages(pageCount)} · ` : "") + dirOf(file) : "";
   $("fileName").textContent = file ? baseName(file) : t.noFile;
   $("fileName").classList.toggle("muted", !file);
   $("fileName").title = file ?? "";
@@ -75,10 +76,51 @@ function setFile(paths: string[]) {
   if (!pdfs.length) return showError(t.errNotPdf);
   showError(pdfs.length < paths.length ? t.errNotPdf : pdfs.length > 1 ? t.oneFile : "");
   file = pdfs[0];
+  pageCount = 0;
   input("newName").value = lockName(file);
   showStatus("");
   render();
+  loadPreview(file);
 }
+
+// --- preview -------------------------------------------------------------------
+let previewData: ArrayBuffer | null = null;
+
+function pageMessage(msg: string) {
+  $("pageMsg").textContent = msg;
+  $("pageMsg").hidden = !msg;
+  $("page").hidden = !!msg;
+}
+
+async function drawPreview() {
+  if (!previewData) return;
+  const { renderFirstPage } = await import("./preview"); // keeps pdf.js out of the startup bundle
+  const res = await renderFirstPage(previewData, $<HTMLCanvasElement>("page"), $("pageBox"));
+  if (!res) return; // superseded by a newer file or resize
+  if ("error" in res) return pageMessage(res.error === "password" ? t.previewPassword : t.previewInvalid);
+  pageMessage("");
+  pageCount = res.pages;
+  render();
+}
+
+async function loadPreview(path: string) {
+  previewData = null;
+  pageMessage(t.loading);
+  try {
+    const data = await invoke<ArrayBuffer>("read_pdf", { path });
+    if (path !== file) return;
+    previewData = data;
+    await drawPreview();
+  } catch (err) {
+    if (path === file) pageMessage(String(err));
+  }
+}
+
+let resizeTimer = 0;
+window.addEventListener("resize", () => {
+  clearTimeout(resizeTimer);
+  resizeTimer = window.setTimeout(drawPreview, 150);
+});
 
 function toggleSaveAs(open = $("saveAsRow").hidden === true) {
   $("saveAsRow").hidden = !open;

@@ -6,15 +6,16 @@
   "author": "Chulwoo Park",
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc --noEmit && vite build",
+    "dev": "node scripts/copy-pdfjs.mjs && vite",
+    "build": "node scripts/copy-pdfjs.mjs && tsc --noEmit && vite build",
     "tauri": "tauri",
     "version": "node scripts/sync-version.mjs && git add src-tauri/Cargo.toml src-tauri/Cargo.lock",
     "release-build": "node scripts/build.mjs"
   },
   "dependencies": {
     "@tauri-apps/api": "^2.12.4",
-    "@tauri-apps/plugin-dialog": "^2.4.0"
+    "@tauri-apps/plugin-dialog": "^2.4.0",
+    "pdfjs-dist": "^6.5.438"
   },
   "devDependencies": {
     "@tauri-apps/cli": "^2.12.4",

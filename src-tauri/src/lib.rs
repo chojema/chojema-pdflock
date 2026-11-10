@@ -93,11 +93,24 @@ fn path_exists(path: String) -> bool {
     Path::new(&path).exists()
 }
 
+/// Raw bytes of a PDF for the preview, sent as binary rather than a JSON number array.
+#[tauri::command]
+async fn read_pdf(path: String) -> Result<tauri::ipc::Response, String> {
+    if !Path::new(&path).extension().is_some_and(|e| e.eq_ignore_ascii_case("pdf")) {
+        return Err("Not a PDF file".into());
+    }
+    let bytes = tauri::async_runtime::spawn_blocking(move || std::fs::read(path))
+        .await
+        .map_err(|e| e.to_string())?
+        .map_err(|e| format!("Cannot open file: {e}"))?;
+    Ok(tauri::ipc::Response::new(bytes))
+}
+
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![lock_pdf, path_exists])
+        .invoke_handler(tauri::generate_handler![lock_pdf, path_exists, read_pdf])
         .run(tauri::generate_context!())
         .expect("error while running Chojema PDFLock");
 }

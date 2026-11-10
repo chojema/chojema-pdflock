@@ -16,10 +16,12 @@
             <p data-i18n="dropHint"></p>
           </div>
           <div id="card" class="card" hidden>
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 3h8l4 4v14H6zM14 3v4h4" /></svg>
+            <div id="pageBox" class="page-box">
+              <canvas id="page" data-i18n-label="previewLabel"></canvas>
+              <p id="pageMsg" class="hint" hidden></p>
+            </div>
             <p id="cardName" class="card-name"></p>
             <p id="cardDir" class="muted card-dir"></p>
-            <p class="hint" data-i18n="dropReplace"></p>
           </div>
           <button type="button" id="pick" class="secondary"></button>
         </div>

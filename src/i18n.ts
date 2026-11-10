@@ -1,6 +1,10 @@
 const ko = {
   dropHint: "PDF 파일을 여기에 끌어다 놓으세요",
-  dropReplace: "다른 PDF를 끌어다 놓으면 바뀝니다.",
+  previewLabel: "첫 페이지 미리보기",
+  loading: "불러오는 중…",
+  pages: (n: number) => `${n}페이지`,
+  previewPassword: "이미 암호가 걸린 PDF라 미리보기를 표시할 수 없습니다. 이 파일에는 다시 암호를 걸 수 없습니다.",
+  previewInvalid: "미리보기를 표시할 수 없습니다. PDF 파일이 손상되었을 수 있습니다.",
   pickFile: "파일 선택",
   pickOther: "다른 파일 선택",
   noFile: "선택된 파일 없음",
@@ -41,7 +45,11 @@ const ko = {
 
 const en: typeof ko = {
   dropHint: "Drop a PDF file here",
-  dropReplace: "Drop another PDF to replace it.",
+  previewLabel: "First page preview",
+  loading: "Loading…",
+  pages: (n) => `${n} page${n === 1 ? "" : "s"}`,
+  previewPassword: "This PDF is already password-protected, so it cannot be previewed or protected again.",
+  previewInvalid: "Cannot show a preview. The PDF file may be damaged.",
   pickFile: "Choose file",
   pickOther: "Choose another file",
   noFile: "No file selected",

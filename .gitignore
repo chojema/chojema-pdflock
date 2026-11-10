@@ -4,3 +4,4 @@ src-tauri/target/
 src-tauri/gen/
 releases/
 *.log
+public/pdfjs/
