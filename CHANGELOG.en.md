@@ -2,7 +2,7 @@
 
 All notable changes to this project are documented here. The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and versions follow [Semantic Versioning](https://semver.org/).
 
-## [Unreleased]
+## [0.3.0] - 2026-11-10
 
 ### Added
 - Whole first-page preview of the selected PDF, with page count
@@ -34,5 +34,6 @@ All notable changes to this project are documented here. The format follows [Kee
 - Choice of output folder; automatic naming that never overwrites existing files
 - Korean/English UI chosen automatically; light and dark mode
 
+[0.3.0]: https://github.com/chojema/chojema-pdflock/releases/tag/v0.3.0
 [0.2.0]: https://github.com/chojema/chojema-pdflock/releases/tag/v0.2.0
 [0.1.0]: https://github.com/chojema/chojema-pdflock/releases/tag/v0.1.0

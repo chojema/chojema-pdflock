@@ -2,7 +2,7 @@
 
 이 프로젝트의 모든 주요 변경 사항을 기록합니다. 형식은 [Keep a Changelog](https://keepachangelog.com/ko/1.1.0/)를, 버전은 [유의적 버전](https://semver.org/lang/ko/)을 따릅니다.
 
-## [Unreleased]
+## [0.3.0] - 2026-11-10
 
 ### 추가
 - 선택한 PDF의 첫 페이지 전체 미리보기와 쪽수 표시
@@ -34,5 +34,6 @@
 - 저장 위치 선택, 기존 파일을 덮어쓰지 않는 자동 이름 지정
 - 한국어/영어 UI 자동 전환, 라이트/다크 모드
 
+[0.3.0]: https://github.com/chojema/chojema-pdflock/releases/tag/v0.3.0
 [0.2.0]: https://github.com/chojema/chojema-pdflock/releases/tag/v0.2.0
 [0.1.0]: https://github.com/chojema/chojema-pdflock/releases/tag/v0.1.0
