@@ -57,28 +57,6 @@
 - 이미 암호가 걸린 PDF는 처리하지 않습니다.
 - 열기 암호와 권한 암호는 서로 달라야 합니다.
 
-## 버전 정책
-
-[유의적 버전(SemVer)](https://semver.org/lang/ko/) `MAJOR.MINOR.PATCH`를 따릅니다.
-
-- **MAJOR**: 기존 사용 방식과 호환되지 않는 변경
-- **MINOR**: 호환되는 새 기능
-- **PATCH**: 버그 수정
-
-1.0.0 전까지는 MINOR 버전에서도 동작이 바뀔 수 있습니다. 변경 내역은 [CHANGELOG.md](CHANGELOG.md)에서 볼 수 있습니다.
-
-## 직접 빌드하기
-
-필요한 도구: [Node.js](https://nodejs.org/) 20 이상, [Rust](https://rustup.rs/), C++ 컴파일러(Windows: Visual Studio Build Tools, macOS: Xcode Command Line Tools)
-
-```bash
-npm install
-npm run release-build                                      # 현재 플랫폼용
-npm run release-build -- --target universal-apple-darwin   # macOS Universal
-```
-
-macOS Universal 빌드 전에 `rustup target add aarch64-apple-darwin x86_64-apple-darwin`을 실행하세요.
-
 ## 라이선스
 
 [MIT](LICENSE) © 2026 Chulwoo Park

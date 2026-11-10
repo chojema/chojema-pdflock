@@ -57,28 +57,6 @@ The app is not code-signed, so you may see a warning the first time you run it.
 - PDFs that are already password-protected are skipped.
 - The open and permissions passwords must be different.
 
-## Versioning
-
-This project follows [Semantic Versioning](https://semver.org/) `MAJOR.MINOR.PATCH`.
-
-- **MAJOR**: incompatible changes
-- **MINOR**: new, backward-compatible features
-- **PATCH**: bug fixes
-
-Before 1.0.0, a MINOR release may also change behavior. See [CHANGELOG.en.md](CHANGELOG.en.md) for the history.
-
-## Build from source
-
-Requirements: [Node.js](https://nodejs.org/) 20+, [Rust](https://rustup.rs/), a C++ compiler (Windows: Visual Studio Build Tools, macOS: Xcode Command Line Tools)
-
-```bash
-npm install
-npm run release-build                                      # current platform
-npm run release-build -- --target universal-apple-darwin   # macOS Universal
-```
-
-For a macOS Universal build, first run `rustup target add aarch64-apple-darwin x86_64-apple-darwin`.
-
 ## License
 
 [MIT](LICENSE) © 2026 Chulwoo Park
