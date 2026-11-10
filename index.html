@@ -52,19 +52,21 @@
 
         <label class="check"><input type="checkbox" id="show" /> <span data-i18n="showPw"></span></label>
 
-        <fieldset>
-          <legend data-i18n="outTitle"></legend>
-          <div class="out">
-            <span id="outDir" class="muted"></span>
-            <button type="button" id="pickOut" class="secondary" data-i18n="choose"></button>
-            <button type="button" id="resetOut" class="link" data-i18n="sameFolder"></button>
-          </div>
-        </fieldset>
-
         <p id="error" class="error" role="alert"></p>
-        <button type="button" id="lock" class="primary" data-i18n="lock"></button>
+        <div class="save-all">
+          <button type="button" id="saveAll" class="primary" data-i18n="saveAll"></button>
+          <p class="hint" data-i18n="saveAllHint"></p>
+        </div>
         <footer class="muted"><span id="version"></span> · AES-256</footer>
       </section>
     </main>
+
+    <dialog id="confirm" aria-labelledby="confirmMsg">
+      <p id="confirmMsg"></p>
+      <div class="dialog-actions">
+        <button type="button" id="confirmNo" class="secondary" data-i18n="cancel"></button>
+        <button type="button" id="confirmYes" class="primary"></button>
+      </div>
+    </dialog>
   </body>
 </html>

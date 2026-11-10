@@ -1,6 +1,6 @@
 use qpdf::{EncryptionParams, EncryptionParamsR6, PrintPermission, QPdf};
 use serde::Deserialize;
-use std::path::{Path, PathBuf};
+use std::path::Path;
 
 #[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
@@ -40,7 +40,9 @@ pub fn lock_bytes(pdf: &[u8], o: &LockOptions) -> Result<Vec<u8>, String> {
     let allow = |flag: bool| !restricted || flag;
     let params = EncryptionParamsR6 {
         user_password: o.open_password.clone(),
-        owner_password: o.permission_password.clone(),
+        // An empty owner password would let anyone open the file as owner with no password,
+        // bypassing the open password. Reuse the open password instead.
+        owner_password: if restricted { o.permission_password.clone() } else { o.open_password.clone() },
         allow_print: match (restricted, o.print.as_str()) {
             (true, "none") => PrintPermission::None,
             (true, "low") => PrintPermission::Low,
@@ -60,44 +62,42 @@ pub fn lock_bytes(pdf: &[u8], o: &LockOptions) -> Result<Vec<u8>, String> {
         .map_err(|e| format!("Cannot write PDF: {e}"))
 }
 
-/// `report.pdf` -> `report_locked.pdf`, then `report_locked (2).pdf`, ... never overwriting.
-fn output_path(input: &Path, out_dir: Option<&Path>) -> PathBuf {
-    let dir = out_dir.or(input.parent()).unwrap_or(Path::new("."));
-    let stem = input.file_stem().unwrap_or_default().to_string_lossy();
-    let mut path = dir.join(format!("{stem}_locked.pdf"));
-    let mut n = 2;
-    while path.exists() {
-        path = dir.join(format!("{stem}_locked ({n}).pdf"));
-        n += 1;
+/// Encrypts `input` into `output` (which may be `input` itself, after the user confirmed).
+/// Writes a temp file first, so a failure never leaves a half-written or destroyed PDF.
+fn save_locked(input: &Path, output: &Path, o: &LockOptions) -> Result<(), String> {
+    let is_pdf = output.extension().is_some_and(|e| e.eq_ignore_ascii_case("pdf"));
+    if !is_pdf || output.file_stem().is_none_or(|s| s.is_empty()) {
+        return Err("Invalid file name".into());
     }
-    path
+    let pdf = std::fs::read(input).map_err(|e| format!("Cannot open file: {e}"))?;
+    let locked = lock_bytes(&pdf, o)?;
+    let tmp = output.with_extension("pdf.part");
+    std::fs::write(&tmp, locked).map_err(|e| format!("Cannot save file: {e}"))?;
+    std::fs::rename(&tmp, output).map_err(|e| {
+        let _ = std::fs::remove_file(&tmp);
+        format!("Cannot save file: {e}")
+    })
 }
 
 #[tauri::command]
-async fn lock_pdf(input: String, out_dir: Option<String>, options: LockOptions) -> Result<String, String> {
+async fn lock_pdf(input: String, output: String, options: LockOptions) -> Result<String, String> {
     tauri::async_runtime::spawn_blocking(move || {
-        let input = PathBuf::from(input);
-        let pdf = std::fs::read(&input).map_err(|e| format!("Cannot open file: {e}"))?;
-        let locked = lock_bytes(&pdf, &options)?;
-        let out = output_path(&input, out_dir.as_deref().map(Path::new));
-        // Write to a temp file first so a failure never leaves a half-written PDF.
-        let tmp = out.with_extension("pdf.part");
-        std::fs::write(&tmp, locked).map_err(|e| format!("Cannot save file: {e}"))?;
-        std::fs::rename(&tmp, &out).map_err(|e| {
-            let _ = std::fs::remove_file(&tmp);
-            format!("Cannot save file: {e}")
-        })?;
-        Ok(out.to_string_lossy().into_owned())
+        save_locked(Path::new(&input), Path::new(&output), &options).map(|_| output)
     })
     .await
     .map_err(|e| e.to_string())?
+}
+
+#[tauri::command]
+fn path_exists(path: String) -> bool {
+    Path::new(&path).exists()
 }
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
-        .invoke_handler(tauri::generate_handler![lock_pdf])
+        .invoke_handler(tauri::generate_handler![lock_pdf, path_exists])
         .run(tauri::generate_context!())
         .expect("error while running Chojema PDFLock");
 }
@@ -132,6 +132,12 @@ mod tests {
         assert!(QPdf::read_from_memory_encrypted(&out, "wrong").is_err());
         assert!(QPdf::read_from_memory_encrypted(&out, "open123").unwrap().is_encrypted());
         assert!(QPdf::read_from_memory_encrypted(&out, "owner456").is_ok());
+
+        // Open password only (regression: an empty owner password used to bypass it).
+        let out = lock_bytes(&sample_pdf(), &opts("open123", "")).unwrap();
+        assert!(QPdf::read_from_memory(&out).is_err());
+        assert!(QPdf::read_from_memory_encrypted(&out, "").is_err());
+        assert!(QPdf::read_from_memory_encrypted(&out, "open123").is_ok());
     }
 
     #[test]
@@ -178,13 +184,30 @@ mod tests {
     }
 
     #[test]
-    fn output_name_never_overwrites() {
+    fn save_as_and_save_over_original() {
         let dir = std::env::temp_dir().join(format!("pdflock-test-{}", std::process::id()));
         std::fs::create_dir_all(&dir).unwrap();
         let input = dir.join("doc.pdf");
-        assert_eq!(output_path(&input, None), dir.join("doc_locked.pdf"));
-        std::fs::write(dir.join("doc_locked.pdf"), b"x").unwrap();
-        assert_eq!(output_path(&input, None), dir.join("doc_locked (2).pdf"));
+        std::fs::write(&input, sample_pdf()).unwrap();
+
+        // Save as a new name: original untouched.
+        let out = dir.join("doc_lock.pdf");
+        save_locked(&input, &out, &opts("pw", "")).unwrap();
+        assert!(!QPdf::read(&input).unwrap().is_encrypted());
+        assert!(QPdf::read_encrypted(&out, "pw").unwrap().is_encrypted());
+        assert!(QPdf::read(&out).is_err(), "open password alone must still be required");
+
+        // Save over the original, no temp file left behind.
+        save_locked(&input, &input, &opts("pw", "")).unwrap();
+        assert!(QPdf::read(&input).is_err());
+        assert!(!dir.join("doc.pdf.part").exists());
+
+        // Invalid names and failed encryption never touch the target.
+        assert!(save_locked(&out, &dir.join("x.txt"), &opts("a", "b")).is_err());
+        assert!(save_locked(&out, &dir.join(".pdf"), &opts("a", "b")).is_err());
+        let before = std::fs::read(&out).unwrap();
+        assert!(save_locked(&out, &out, &opts("a", "b")).is_err()); // already protected
+        assert_eq!(std::fs::read(&out).unwrap(), before);
         std::fs::remove_dir_all(&dir).unwrap();
     }
 }
