@@ -1,0 +1,70 @@
+<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Chojema PDFLock</title>
+    <link rel="stylesheet" href="/src/style.css" />
+    <script type="module" src="/src/main.ts"></script>
+  </head>
+  <body>
+    <main class="app">
+      <section class="files">
+        <div class="drop" id="drop">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0-4-4m4 4 4-4M5 19h14" /></svg>
+          <p data-i18n="dropHint"></p>
+          <button type="button" id="pick" class="secondary" data-i18n="addFiles"></button>
+        </div>
+        <ul id="list" class="list" aria-live="polite"></ul>
+        <div class="list-actions">
+          <span id="count" class="muted"></span>
+          <button type="button" id="clear" class="link" data-i18n="clear"></button>
+        </div>
+      </section>
+
+      <section class="settings">
+        <fieldset>
+          <legend data-i18n="openTitle"></legend>
+          <p class="hint" data-i18n="openHint"></p>
+          <div class="pw"><input id="openPw" type="password" autocomplete="new-password" data-i18n-ph="openPh" /></div>
+        </fieldset>
+
+        <fieldset>
+          <legend data-i18n="permTitle"></legend>
+          <p class="hint" data-i18n="permHint"></p>
+          <div class="pw"><input id="permPw" type="password" autocomplete="new-password" data-i18n-ph="permPh" /></div>
+          <div id="perms" class="perms">
+            <label class="row"><span data-i18n="print"></span>
+              <select id="print">
+                <option value="full" data-i18n="printFull"></option>
+                <option value="low" data-i18n="printLow"></option>
+                <option value="none" data-i18n="printNone"></option>
+              </select>
+            </label>
+            <label><input type="checkbox" id="modify" /> <span data-i18n="modify"></span></label>
+            <label><input type="checkbox" id="extract" /> <span data-i18n="extract"></span></label>
+            <label><input type="checkbox" id="accessibility" checked /> <span data-i18n="accessibility"></span></label>
+            <label><input type="checkbox" id="annotate" /> <span data-i18n="annotate"></span></label>
+            <label><input type="checkbox" id="fillForms" checked /> <span data-i18n="fillForms"></span></label>
+            <label><input type="checkbox" id="assemble" /> <span data-i18n="assemble"></span></label>
+          </div>
+        </fieldset>
+
+        <label class="check"><input type="checkbox" id="show" /> <span data-i18n="showPw"></span></label>
+
+        <fieldset>
+          <legend data-i18n="outTitle"></legend>
+          <div class="out">
+            <span id="outDir" class="muted"></span>
+            <button type="button" id="pickOut" class="secondary" data-i18n="choose"></button>
+            <button type="button" id="resetOut" class="link" data-i18n="sameFolder"></button>
+          </div>
+        </fieldset>
+
+        <p id="error" class="error" role="alert"></p>
+        <button type="button" id="lock" class="primary" data-i18n="lock"></button>
+        <footer class="muted"><span id="version"></span> · AES-256</footer>
+      </section>
+    </main>
+  </body>
+</html>

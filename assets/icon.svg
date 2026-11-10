@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1024" height="1024" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#123A5E"/>
+      <stop offset="0.55" stop-color="#0D5C6E"/>
+      <stop offset="1" stop-color="#0E8A8C"/>
+    </linearGradient>
+    <radialGradient id="glow" cx="0.28" cy="0.18" r="0.75">
+      <stop offset="0" stop-color="#FFFFFF" stop-opacity="0.18"/>
+      <stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="paper" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFFFFF"/>
+      <stop offset="1" stop-color="#E4EDF2"/>
+    </linearGradient>
+    <linearGradient id="gold" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#FFD27A"/>
+      <stop offset="1" stop-color="#F0A23B"/>
+    </linearGradient>
+    <linearGradient id="shackle" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#C9D3DC"/>
+      <stop offset="0.5" stop-color="#F4F7FA"/>
+      <stop offset="1" stop-color="#AEBAC6"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="14" stdDeviation="18" flood-color="#04182A" flood-opacity="0.38"/>
+    </filter>
+  </defs>
+
+  <!-- tile (macOS grid: 824px body on 1024 canvas) -->
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#bg)"/>
+  <rect x="100" y="100" width="824" height="824" rx="186" fill="url(#glow)"/>
+
+  <!-- document -->
+  <g filter="url(#shadow)">
+    <path d="M300 236 H560 L672 348 V748 a32 32 0 0 1 -32 32 H300 a32 32 0 0 1 -32 -32 V268 a32 32 0 0 1 32 -32 Z" fill="url(#paper)"/>
+    <path d="M560 236 V316 a32 32 0 0 0 32 32 H672 Z" fill="#B9CBD6"/>
+  </g>
+  <g fill="#9FB3C2">
+    <rect x="320" y="400" width="250" height="22" rx="11"/>
+    <rect x="320" y="456" width="300" height="22" rx="11"/>
+    <rect x="320" y="512" width="210" height="22" rx="11"/>
+    <rect x="320" y="568" width="140" height="22" rx="11"/>
+  </g>
+  <text x="320" y="352" font-family="Segoe UI, Helvetica, Arial, sans-serif" font-weight="700" font-size="64" fill="#0D5C6E" letter-spacing="2">PDF</text>
+
+  <!-- padlock -->
+  <g filter="url(#shadow)">
+    <path d="M572 600 V530 a106 106 0 0 1 212 0 V600" fill="none" stroke="url(#shackle)" stroke-width="44" stroke-linecap="round"/>
+    <rect x="516" y="590" width="324" height="244" rx="48" fill="url(#gold)"/>
+    <rect x="516" y="590" width="324" height="40" rx="20" fill="#FFFFFF" fill-opacity="0.22"/>
+    <circle cx="678" cy="694" r="34" fill="#7A4A0C"/>
+    <path d="M664 712 H692 L700 770 H656 Z" fill="#7A4A0C"/>
+  </g>
+</svg>

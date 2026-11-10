@@ -1,0 +1,40 @@
+{
+  "$schema": "https://schema.tauri.app/config/2",
+  "productName": "Chojema PDFLock",
+  "version": "../package.json",
+  "identifier": "com.chojema.pdflock",
+  "build": {
+    "beforeDevCommand": "npm run dev",
+    "devUrl": "http://localhost:1420",
+    "beforeBuildCommand": "npm run build",
+    "frontendDist": "../dist"
+  },
+  "app": {
+    "windows": [
+      {
+        "label": "main",
+        "title": "Chojema PDFLock",
+        "width": 920,
+        "height": 760,
+        "minWidth": 720,
+        "minHeight": 640
+      }
+    ],
+    "security": {
+      "csp": "default-src 'self'; img-src 'self' data:; style-src 'self' 'unsafe-inline'; connect-src 'self' ipc: http://ipc.localhost"
+    }
+  },
+  "bundle": {
+    "active": true,
+    "targets": ["nsis", "dmg"],
+    "publisher": "Chulwoo Park",
+    "copyright": "© 2026 Chulwoo Park",
+    "shortDescription": "Protect PDF files with passwords",
+    "category": "Utility",
+    "windows": {
+      "nsis": { "installerIcon": "icons/icon.ico" }
+    },
+    "macOS": { "minimumSystemVersion": "11.0" },
+    "icon": ["icons/32x32.png", "icons/128x128.png", "icons/128x128@2x.png", "icons/icon.icns", "icons/icon.ico"]
+  }
+}
